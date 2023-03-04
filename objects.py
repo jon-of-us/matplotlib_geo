@@ -21,14 +21,15 @@ class Point(Graphics):
         self.pos = new_pos
         pass
 
-    def __call__(self) -> complex:
-        return self.pos
+    def update(self):
+        point_coords = self()
+        return self.artist.set_center((point_coords.real, point_coords.imag))
 
     def _get_artist(self):
-        point_coords = self()
-        return pat.Circle(
-            (point_coords.real, point_coords.imag), self.plot_radius, color=self.color
-        )
+        return pat.Circle((0, 0), self.plot_radius, color=self.color)
+
+    def __call__(self) -> complex:
+        return self.pos
 
 
 class Line(Graphics):
@@ -47,14 +48,25 @@ class Line(Graphics):
         """(point, vector)"""
         return (self.point1(), self.point2() - self.point1())
 
+    def update(self):
+        p, vec = self()
+        leng = np.abs(vec)
+        ylim = self.artist.axes.get_ylim()
+        xlim = self.artist.axes.get_xlim()
+        max_dist = max(
+            np.abs(p.real - xlim[0]),
+            np.abs(p.real - xlim[1]),
+            np.abs(p.imag - ylim[0]),
+            np.abs(p.imag - ylim[1]),
+        ) * np.sqrt(2)
+        factor = max_dist / leng
+        p1, p2 = p + factor * vec, p - factor * vec
+        self.artist.set_xdata([p1.real, p2.real])
+        self.artist.set_ydata([p1.imag, p2.imag])
+
     def _get_artist(self):
-        point, vec = self()
-        point2 = point + vec
-        return plt.axline(
-            [point.real, point.imag],
-            [point2.real, point2.imag],
-            color=self.color,
-            linestyle=self.style,
+        return lines.Line2D(
+            [], [], s.LINE_WIDTH, color=self.color, linestyle=self.style
         )
 
 
@@ -62,15 +74,11 @@ class LineSegment(Line):
     def __init__(self, point1: Point, point2: Point, **kwargs):
         super(LineSegment, self).__init__(point1, point2, *kwargs)
 
-    def _get_artist(self):
-        p1 = self.point1()
-        p2 = self.point2()
-        return lines.Line2D(
-            [p1.real, p2.real],
-            [p1.imag, p2.imag],
-            s.LINE_WIDTH,
-            color=s.LINE_COLOR,
-        )
+    def update(self):
+        p1, vec = self()
+        p2 = p1 + vec
+        self.artist.set_xdata([p1.real, p2.real])
+        self.artist.set_ydata([p1.imag, p2.imag])
 
 
 class MidPoint(Point):
@@ -117,11 +125,10 @@ class Circ(Graphics):
         """midpoint, radius"""
         return (self.midpoint(), np.abs(self.midpoint() - self.edgepoint()))
 
-    def _get_artist(self):
+    def update(self):
         point_coords, radius = self()
-        return pat.Circle(
-            (point_coords.real, point_coords.imag),
-            radius,
-            color=s.LINE_COLOR,
-            fill=False,
-        )
+        self.artist.set_center((point_coords.real, point_coords.imag))
+        self.artist.set_radius(radius)
+
+    def _get_artist(self):
+        return pat.Circle((0, 0), 0, color=s.LINE_COLOR, fill=False)

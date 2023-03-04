@@ -17,5 +17,4 @@ intersect = Intersect(pd1, pd2)
 circ = Circ(intersect, p1)
 
 fig = Figure(p1, p2, p3, circ, l1, l2, l3, pd1, pd2, pd3)
-fig.plot()
 plt.show()
