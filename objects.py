@@ -48,7 +48,7 @@ class Line(Graphics):
         """(point, vector)"""
         return (self.point1(), self.point2() - self.point1())
 
-    def update(self):
+    def _points_to_render(self):
         p, vec = self()
         leng = np.abs(vec)
         ylim = self.artist.axes.get_ylim()
@@ -60,7 +60,10 @@ class Line(Graphics):
             np.abs(p.imag - ylim[1]),
         ) * np.sqrt(2)
         factor = max_dist / leng
-        p1, p2 = p + factor * vec, p - factor * vec
+        return (p + factor * vec, p - factor * vec)
+
+    def update(self):
+        p1, p2 = self._points_to_render()
         self.artist.set_xdata([p1.real, p2.real])
         self.artist.set_ydata([p1.imag, p2.imag])
 
@@ -74,11 +77,9 @@ class LineSegment(Line):
     def __init__(self, point1: Point, point2: Point, **kwargs):
         super(LineSegment, self).__init__(point1, point2, *kwargs)
 
-    def update(self):
-        p1, vec = self()
-        p2 = p1 + vec
-        self.artist.set_xdata([p1.real, p2.real])
-        self.artist.set_ydata([p1.imag, p2.imag])
+    def _points_to_render(self):
+        p, vec = self()
+        return (p, p + vec)
 
 
 class MidPoint(Point):
