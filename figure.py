@@ -50,8 +50,9 @@ class Figure:
         self.current_object = None
 
     def on_motion(self, event):
-        self.update()
         # return if click is not on canvas
-        if self.current_object == None or event.xdata == None:
-            return
-        self.current_object.set_to(event.xdata + 1j * event.ydata + self.click_offset)
+        if self.current_object != None and event.xdata != None:
+            self.current_object.set_to(
+                event.xdata + 1j * event.ydata + self.click_offset
+            )
+        self.update()
