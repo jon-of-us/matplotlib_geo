@@ -69,7 +69,7 @@ class Line(Graphics):
 
     def _get_artist(self):
         return lines.Line2D(
-            [], [], s.LINE_WIDTH, color=self.color, linestyle=self.style
+            [], [], linewidth=s.LINE_WIDTH, color=self.color, linestyle=self.style
         )
 
 
